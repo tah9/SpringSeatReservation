@@ -1,0 +1,30 @@
+
+spring:
+  jackson:
+    default-property-inclusion: non_null
+  datasource:
+    username: root
+    password:  123456++q
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/fitness?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+
+
+  thymeleaf:
+    cache: false
+server:
+  port: 9003
+
+
+
+## 开启驼峰支持
+#mybatis:
+#  mapper-locations: classpath:mapper/*.xml  #对应mapper映射xml文件所在路径
+#  type-aliases-package: cn.wbnull.springbootdemo.model  #对应实体类路径
+#  configuration:
+#    map-underscore-to-camel-case: true
+
+#mybatis:
+##  type-aliases-package: org.larry.springboot.entity
+#  mapper-locations: classpath:mapper/**/*.xml
+#  check-config-location: true
+
