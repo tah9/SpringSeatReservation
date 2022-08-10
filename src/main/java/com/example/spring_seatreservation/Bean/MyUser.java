@@ -5,9 +5,18 @@ public class MyUser {
     long uid;
     String username;
     String password;
+    long number;
+
+    public long getNumber() {
+        return number;
+    }
+
+    public MyUser setNumber(long number) {
+        this.number = number;
+        return this;
+    }
+
     int type;
-    int sex;
-    int cid;
 
     public int getType() {
         return type;
@@ -18,23 +27,6 @@ public class MyUser {
         return this;
     }
 
-    public int getSex() {
-        return sex;
-    }
-
-    public MyUser setSex(int sex) {
-        this.sex = sex;
-        return this;
-    }
-
-    public int getCid() {
-        return cid;
-    }
-
-    public MyUser setCid(int cid) {
-        this.cid = cid;
-        return this;
-    }
 
     public MyUser(long uid, String username, String password) {
         this.uid = uid;

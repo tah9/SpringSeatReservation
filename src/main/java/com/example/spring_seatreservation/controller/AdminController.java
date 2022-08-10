@@ -29,5 +29,15 @@ public class AdminController {
         return new R().ok().getMap();
     }
 
+    @PostMapping("/addSeat")
+    public Map<String, Object> addSeat(@RequestBody Map<String, Object> map) {
+        adminMapper.addSeat(map);
+        return new R().ok().getMap();
+    }
 
+    @PostMapping("/deleteSeat")
+    public Map<String, Object> deleteSeat(@RequestBody Map<String, Object> map) {
+        adminMapper.deleteSeat(map);
+        return new R().ok().getMap();
+    }
 }
