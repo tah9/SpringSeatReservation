@@ -41,7 +41,7 @@ public class DynamicTaskService {
 
     /**
      * 添加一个动态任务
-     *
+     * 任务名：目标状态码+座位id
      * @param myTask
      * @return
      */

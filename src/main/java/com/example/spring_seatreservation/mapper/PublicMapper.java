@@ -29,12 +29,12 @@ public interface PublicMapper {
     @Select("select * from seat where area=${area}")
     List<Map<String, Object>> getAreaSeats(Map<String, Object> map);
 
-    @Select("select * from reservation where state=0 or state=3")
-    List<Map<String, Object>> getWaitReservation();
+    @Select("SELECT * FROM reservation WHERE state!=-1 OR state !=2 OR state != 4")
+    List<Map<String, Object>> getNeedCheckReservation();
 
     @Update("update reservation set state=${state} where rid=${rid}")
     void updateReservation(Object state, Object rid);
 
-    @Select("select * from reservation where rid=${rid}")
-    Map<String, Object> getReservationByRid(Object rid);
+    @Select("SELECT * FROM reservation WHERE sid=${sid} AND state=0 OR state=3")
+    Map<String, Object> getReservationBySid(Object rid);
 }

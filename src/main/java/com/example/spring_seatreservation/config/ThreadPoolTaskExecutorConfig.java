@@ -16,7 +16,7 @@ public class ThreadPoolTaskExecutorConfig {
     @Bean
     public ThreadPoolTaskScheduler syncScheduler() {
         ThreadPoolTaskScheduler syncScheduler = new ThreadPoolTaskScheduler();
-        syncScheduler.setPoolSize(5);
+//        syncScheduler.setPoolSize(5);
         // 这里给线程设置名字，主要是为了在项目能够更快速的定位错误。
         syncScheduler.setThreadGroupName("syncTg");
         syncScheduler.setThreadNamePrefix("syncThread-");

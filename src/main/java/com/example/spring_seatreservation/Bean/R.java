@@ -10,7 +10,7 @@ public class R extends HashMap<String,Object> {
         map = new HashMap<>();
     }
 
-    public HashMap<String,Object> getMap() {
+    public HashMap<String,Object> builder() {
         return map;
     }
 

@@ -1,13 +1,11 @@
 package com.example.spring_seatreservation.controller;
 
 
-import com.example.spring_seatreservation.Bean.MyUser;
-import com.example.spring_seatreservation.Bean.R;
-import com.example.spring_seatreservation.Bean.MyTask;
-import com.example.spring_seatreservation.Bean.Restful;
+import com.example.spring_seatreservation.Bean.*;
 import com.example.spring_seatreservation.Other.DynamicTaskService;
 import com.example.spring_seatreservation.Other.SignedNumber;
 import com.example.spring_seatreservation.mapper.PublicMapper;
+import com.example.spring_seatreservation.mapper.UserMapper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +18,8 @@ import java.util.*;
 public class PublicController {
     @Resource
     PublicMapper publicMapper;
+    @Resource
+    UserMapper userMapper;
 
 
     private final DynamicTaskService dynamicTask;
@@ -30,23 +30,42 @@ public class PublicController {
     }
 
     {
-        //启动项目，检查数据库不合格数据
+        //启动项目,重启预约线程
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                //查找待签到和暂离预约
-                List<Map<String, Object>> list = publicMapper.getWaitReservation();
+                //所有等待或使用状态的预约都需要检查 状态0/1/3的数据
+                List<Map<String, Object>> list = publicMapper.getNeedCheckReservation();
+
                 for (Map<String, Object> map : list) {
+                    int state = (int) map.get("state");
                     long startTime = new Long(map.get("startTime").toString());
                     long currentTimeMillis = System.currentTimeMillis();
-                    //预约30分钟未签到
-                    if (currentTimeMillis - startTime > 30 * 60 * 1000L) {
-                        publicMapper.updateReservation(Restful.UNSIGNED, map.get("rid"));
+                    //预约中的
+                    if (state == ReservationCode.WAIT_SIGNED) {
+                        dynamicTask.add(new MyTask(ReservationCode.UNSIGNED + map.get("sid").toString(),
+                                startTime + 30 * 60 * 1000L, () -> {
+                            publicMapper.updateReservation(ReservationCode.UNSIGNED, map.get("rid"));
+                            userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
+                        }));
                     }
-                    //暂离60分钟未签到
-                    else if (currentTimeMillis - new Long(map.get("leaveTime").toString()) > 60 * 60 * 1000L) {
-                        publicMapper.updateReservation(Restful.LEAVE_UNSIGNED, map.get("rid"));
+                    //暂离的
+                    else if (state == ReservationCode.LEAVE &&
+                            currentTimeMillis - new Long(map.get("leaveTime").toString()) > 60 * 60 * 1000L) {
+                        dynamicTask.add(new MyTask(ReservationCode.LEAVE_UNSIGNED + map.get("sid").toString(),
+                                ((long) map.get("leaveTime")) + 60 * 60 * 1000L, () -> {
+                            publicMapper.updateReservation(ReservationCode.LEAVE_UNSIGNED, map.get("rid"));
+                            userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
+                        }));
+                    }
+                    //使用中的
+                    else if (state == ReservationCode.SIGNED_BE_USE) {
+                        dynamicTask.add(new MyTask(ReservationCode.FINISH + map.get("sid").toString(),
+                                ((long) map.get("endTime")), () -> {
+                            publicMapper.updateReservation(ReservationCode.FINISH, map.get("rid"));
+                            userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
+                        }));
                     }
                 }
             }
@@ -54,14 +73,21 @@ public class PublicController {
         timer.schedule(timerTask, 5000);
     }
 
+    /**
+     * 通过座位id获取签到码
+     *
+     * @param map
+     * @return
+     */
     @PostMapping("/getSignedNumber")
     public Map<String, Object> getSignedNumber(@RequestBody Map<String, Object> map) {
-        Map<String, Object> reservation = publicMapper.getReservationByRid(map.get("rid"));
-        HashMap<String, Object> result = new R().ok().getMap();
+        Map<String, Object> reservation = publicMapper.getReservationBySid(map.get("sid"));
+
+        HashMap<String, Object> result = new R().ok().builder();
         Object state = reservation.get("state");
-        if (state.equals(Restful.WAIT_SIGNED)) {
+        if (state.equals(ReservationCode.WAIT_SIGNED)) {
             result.put("number", SignedNumber.getSignedNumber(reservation));
-        } else if (state.equals(Restful.LEAVE)) {
+        } else if (state.equals(ReservationCode.LEAVE)) {
             result.put("number", SignedNumber.getLeaveSignedNumber(reservation));
         }
         return result;
@@ -116,7 +142,7 @@ public class PublicController {
 
     @GetMapping("/getArea")
     public Map<String, Object> getAnnounce() {
-        return new R().ok().add("rows", publicMapper.getArea()).getMap();
+        return new R().ok().add("rows", publicMapper.getArea()).builder();
     }
 
     @PostMapping("/getAreaSeats")
@@ -125,7 +151,7 @@ public class PublicController {
         for (Map<String, Object> areaSeat : areaSeats) {
             areaSeat.put("show", false);
         }
-        return new R().ok().add("rows", areaSeats).getMap();
+        return new R().ok().add("rows", areaSeats).builder();
 
     }
 
@@ -136,9 +162,9 @@ public class PublicController {
         if (publicMapper.getUserByNumber(number).getPassword().equals(map.get("opassword"))) {
             publicMapper.updatePwd(map.get("npassword").toString()
                     , number);
-            return new R().ok().getMap();
+            return new R().ok().builder();
         } else {
-            return new R().bad().getMap();
+            return new R().bad().builder();
         }
     }
 
@@ -146,9 +172,9 @@ public class PublicController {
     public Map<String, Object> register(@RequestBody MyUser user) {
         try {
             publicMapper.insertUser(user);
-            return new R().ok().getMap();
+            return new R().ok().builder();
         } catch (Exception e) {
-            return new R().bad().getMap();
+            return new R().bad().builder();
         }
     }
 
@@ -158,12 +184,12 @@ public class PublicController {
             MyUser resultUser = publicMapper.getUserByNumber(user.getNumber());
             System.out.println(resultUser);
             if (resultUser.getPassword().equals(user.getPassword())) {
-                return new R().ok().add("user", resultUser).getMap();
+                return new R().ok().add("user", resultUser).builder();
             } else {
                 throw new Exception();
             }
         } catch (Exception e) {
-            return new R().bad().getMap();
+            return new R().bad().builder();
         }
     }
 }

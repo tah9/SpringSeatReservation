@@ -19,27 +19,27 @@ public class TeacherController {
 
     @PostMapping("/getTask")
     public Map<String, Object> getTask() {
-        return new R().ok().add("rows", teacherMapper.getTask()).getMap();
+        return new R().ok().add("rows", teacherMapper.getTask()).builder();
     }
 
     @PostMapping("/insertTask")
     public Map<String, Object> insertTask(@RequestBody Map<String, Object> map) {
         map.put("datetime", System.currentTimeMillis());
         teacherMapper.insertTask(map);
-        return new R().ok().getMap();
+        return new R().ok().builder();
     }
 
 
     @PostMapping("/getScoreByTid")
     public Map<String, Object> getScoreByTid(@RequestBody Map<String, Object> map) {
-        return new R().ok().add("rows", teacherMapper.getScoreByTid(map)).getMap();
+        return new R().ok().add("rows", teacherMapper.getScoreByTid(map)).builder();
     }
 
 
     @PostMapping("/updateScore")
     public Map<String, Object> updateScore(@RequestBody Map<String, Object> map) {
         teacherMapper.updateScore(map);
-        return new R().ok().getMap();
+        return new R().ok().builder();
     }
 
 
