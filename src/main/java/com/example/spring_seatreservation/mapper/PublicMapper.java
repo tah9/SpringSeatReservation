@@ -29,7 +29,7 @@ public interface PublicMapper {
     @Select("select * from seat where area=${area}")
     List<Map<String, Object>> getAreaSeats(Map<String, Object> map);
 
-    @Select("SELECT * FROM reservation WHERE state!=-1 OR state !=2 OR state != 4")
+    @Select("SELECT * FROM reservation WHERE state!=-1 and state !=2 and state != 4")
     List<Map<String, Object>> getNeedCheckReservation();
 
     @Update("update reservation set state=${state} where rid=${rid}")

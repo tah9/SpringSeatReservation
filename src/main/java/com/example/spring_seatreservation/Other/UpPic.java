@@ -8,8 +8,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.TimeZone;
 
 public class UpPic {
+    //当日23:59:59时间戳
+//    long curDateEndTime = startTime / (1000 * 3600 * 24) * (1000 * 3600 * 24) - TimeZone.getDefault().getRawOffset() + 86400000L - 1;
 
     //将接口上传的所有文件保存到本地指定路径下，返回文件名
     public static String upPics(HttpServletRequest request) throws Exception {

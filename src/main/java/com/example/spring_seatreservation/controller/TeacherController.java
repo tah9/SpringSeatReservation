@@ -2,10 +2,7 @@ package com.example.spring_seatreservation.controller;
 
 import com.example.spring_seatreservation.Bean.R;
 import com.example.spring_seatreservation.mapper.TeacherMapper;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -17,31 +14,22 @@ public class TeacherController {
     @Resource
     TeacherMapper teacherMapper;
 
-    @PostMapping("/getTask")
-    public Map<String, Object> getTask() {
-        return new R().ok().add("rows", teacherMapper.getTask()).builder();
+
+    @GetMapping("/getReservation")
+    public Map<String, Object> getReservation() {
+        return new R().ok().add("rows", teacherMapper.getReservation()).builder();
     }
 
-    @PostMapping("/insertTask")
-    public Map<String, Object> insertTask(@RequestBody Map<String, Object> map) {
-        map.put("datetime", System.currentTimeMillis());
-        teacherMapper.insertTask(map);
+    @GetMapping("/getReservationNeedSub")
+    public Map<String, Object> getReservationNeedSub() {
+        return new R().ok().add("rows", teacherMapper.getReservationNeedSub()).builder();
+    }
+
+    @PostMapping("/subScore")
+    public Map<String, Object> subScore(@RequestBody Map<String, Object> map) {
+        teacherMapper.subScore(map);
+        teacherMapper.subReservationScore(map);
         return new R().ok().builder();
     }
-
-
-    @PostMapping("/getScoreByTid")
-    public Map<String, Object> getScoreByTid(@RequestBody Map<String, Object> map) {
-        return new R().ok().add("rows", teacherMapper.getScoreByTid(map)).builder();
-    }
-
-
-    @PostMapping("/updateScore")
-    public Map<String, Object> updateScore(@RequestBody Map<String, Object> map) {
-        teacherMapper.updateScore(map);
-        return new R().ok().builder();
-    }
-
-
 
 }

@@ -3,6 +3,7 @@ package com.example.spring_seatreservation.Other;
 import com.example.spring_seatreservation.Bean.MyTask;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -41,7 +42,8 @@ public class DynamicTaskService {
 
     /**
      * 添加一个动态任务
-     * 任务名：目标状态码+座位id
+     * 任务名：目标状态码-座位id
+     *
      * @param myTask
      * @return
      */

@@ -20,7 +20,15 @@ public interface UserMapper {
             "LEFT JOIN  seat AS b ON b.`sid`=a.`sid` \n" +
             "LEFT JOIN `area` AS c ON c.`aid`=b.`area` \n" +
             "WHERE a.`uid`=${uid}")
-    List<Map<String, Object>> getReservationByUid(Object uid);
+    List<Map<String, Object>>  getReservationByUid(Object uid);
+
+
+    @Select("SELECT * FROM reservation WHERE uid=${uid} AND (state=0 OR state=1 OR state=3)")
+    List<Map<String, Object>> getCurReservation(Object uid);
+
+
+    @Select("SELECT a.*,b.* FROM reservation AS a LEFT JOIN USER AS b ON b.`uid`=a.`uid` WHERE (state=2 OR state=4 ) AND a.`score` IS NOT NULL AND a.`uid`=${uid}")
+    List<Map<String, Object>> getReservation(Map<String, Object> map);
 
 
     @Update("update reservation set state=${state} where rid=${rid}")
@@ -31,4 +39,13 @@ public interface UserMapper {
 
     @Update("update seat set state=${state} where sid=${sid}")
     void updateSeat(int state, Object sid);
+
+    @Update("update reservation set leaveTime=${leaveTime}, state=3 where rid=${rid}")
+    void leaveReservation(Object leaveTime, Object rid);
+
+    @Update("update seat set state=1 where sid=${sid}")
+    void leaveSeat(Object sid);
+
+    @Select("select score from user where uid=${uid}")
+    int getScore(Object uid);
 }

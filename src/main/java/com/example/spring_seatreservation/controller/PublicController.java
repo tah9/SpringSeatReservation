@@ -35,35 +35,39 @@ public class PublicController {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
+
                 //所有等待或使用状态的预约都需要检查 状态0/1/3的数据
                 List<Map<String, Object>> list = publicMapper.getNeedCheckReservation();
 
                 for (Map<String, Object> map : list) {
                     int state = (int) map.get("state");
                     long startTime = new Long(map.get("startTime").toString());
-                    long currentTimeMillis = System.currentTimeMillis();
+
+                    //预约结束时自动恢复座位状态
+                    dynamicTask.add(new MyTask(ReservationCode.FINISH + "-" + map.get("sid"), (long) map.get("endTime"), () -> {
+                        userMapper.updateReservation(ReservationCode.FINISH, map.get("rid"));
+                        userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
+                    }));
+                    //使用中的
+                    if (state == ReservationCode.SIGNED_BE_USE) {
+
+                    }
                     //预约中的
-                    if (state == ReservationCode.WAIT_SIGNED) {
-                        dynamicTask.add(new MyTask(ReservationCode.UNSIGNED + map.get("sid").toString(),
+                    else if (state == ReservationCode.TIME_BEGAN) {
+                        //超时设置违约状态并释放座椅
+                        dynamicTask.add(new MyTask(ReservationCode.UNSIGNED + "-" + map.get("sid"),
                                 startTime + 30 * 60 * 1000L, () -> {
+                            dynamicTask.stop(ReservationCode.FINISH + "-" + map.get("sid"));
                             publicMapper.updateReservation(ReservationCode.UNSIGNED, map.get("rid"));
                             userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
                         }));
                     }
                     //暂离的
-                    else if (state == ReservationCode.LEAVE &&
-                            currentTimeMillis - new Long(map.get("leaveTime").toString()) > 60 * 60 * 1000L) {
-                        dynamicTask.add(new MyTask(ReservationCode.LEAVE_UNSIGNED + map.get("sid").toString(),
+                    else if (state == ReservationCode.LEAVE) {
+                        dynamicTask.add(new MyTask(ReservationCode.LEAVE_UNSIGNED + "-" + map.get("sid"),
                                 ((long) map.get("leaveTime")) + 60 * 60 * 1000L, () -> {
+                            dynamicTask.stop(ReservationCode.FINISH + "-" + map.get("sid"));
                             publicMapper.updateReservation(ReservationCode.LEAVE_UNSIGNED, map.get("rid"));
-                            userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
-                        }));
-                    }
-                    //使用中的
-                    else if (state == ReservationCode.SIGNED_BE_USE) {
-                        dynamicTask.add(new MyTask(ReservationCode.FINISH + map.get("sid").toString(),
-                                ((long) map.get("endTime")), () -> {
-                            publicMapper.updateReservation(ReservationCode.FINISH, map.get("rid"));
                             userMapper.updateSeat(SeatCode.CAN_USE, map.get("sid"));
                         }));
                     }
@@ -85,7 +89,7 @@ public class PublicController {
 
         HashMap<String, Object> result = new R().ok().builder();
         Object state = reservation.get("state");
-        if (state.equals(ReservationCode.WAIT_SIGNED)) {
+        if (state.equals(ReservationCode.TIME_BEGAN)) {
             result.put("number", SignedNumber.getSignedNumber(reservation));
         } else if (state.equals(ReservationCode.LEAVE)) {
             result.put("number", SignedNumber.getLeaveSignedNumber(reservation));
@@ -100,28 +104,10 @@ public class PublicController {
      * @return
      */
     @GetMapping
-    public List<String> getStartingDynamicTask(@RequestBody MyTask myTask) {
+    public List<String> getStartingDynamicTask() {
         return dynamicTask.getTaskList();
     }
-
-
-    /**
-     * 开启一个动态任务
-     *
-     * @param myTask
-     * @return
-     */
-    @PostMapping("/dynamic")
-    public String startDynamicTask(@RequestBody MyTask myTask) {
-        // 将这个添加到动态定时任务中去
-        myTask.setRunnable(() -> {
-            System.out.println("任务执行");
-            System.out.println(publicMapper.getArea().size());
-            System.out.println("任务结束");
-        });
-        dynamicTask.add(myTask);
-        return "动态任务:" + myTask.getName() + " 已开启";
-    }
+    
 
 
     /**
