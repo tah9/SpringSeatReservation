@@ -1,5 +1,6 @@
 # SpringSeatReservation
 图书馆座位预约系统
+含移动端页面、后台管理页。代码简单，欢迎star
 ![Snipaste_2023-03-20_21-41-37](https://user-images.githubusercontent.com/63033041/226364920-188da0b4-c589-4118-8548-2c26fb69fee8.jpg)
 ![Snipaste_2023-03-20_21-41-18](https://user-images.githubusercontent.com/63033041/226364945-3a93d6c2-4d1e-4a78-8f80-406339321bad.jpg)
 ![Snipaste_2023-03-20_21-40-49](https://user-images.githubusercontent.com/63033041/226364955-beec9f83-4055-450e-a3f7-b17b4b3dea9c.jpg)
